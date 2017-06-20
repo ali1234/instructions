@@ -1,0 +1,63 @@
+* {
+  padding:0;
+  margin:0;
+}
+
+body {
+  font-family: Helvetica, sans;
+  counter-reset: step;
+}
+
+@page {
+  size: A4 portrait;
+  background-color:#eeeeee;
+  margin:1in;
+}
+
+div.step {
+  counter-increment: step;
+  position:relative;
+  width:100%;
+  height:50%;
+}
+
+div.step:nth-child(even) {
+  page-break-after: always;
+}
+
+div.stepnum:after {
+  content: counter(step);
+  font-size: 0.6in;
+  top:0;
+  left:0;
+}
+
+ul.partslist {
+  position:absolute;
+  top:0;
+  right:0;
+  background-color:#eeeeee;
+  border: solid #cccccc 0.05in;
+  border-radius: 0.1in;
+  max-width:75%;
+}
+
+ul.partslist li {
+  display:inline-block;
+  font-size:0.2in;
+  margin:0.1in;
+}
+
+ul.partslist li img {
+  --image-dpi:600;
+  vertical-align:middle;
+}
+
+img.stepimg {
+  height:100%;
+  position:absolute;
+  top:0;
+  left:0;
+  
+  
+}
