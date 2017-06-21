@@ -367,8 +367,8 @@ class Project(object):
 
 if __name__ == '__main__':
     p = Project(sys.argv[1])
-    #p.render_parts(sys.argv[2])
-    #p.render_steps(sys.argv[2])
+    p.render_parts(sys.argv[2])
+    p.render_steps(sys.argv[2])
     p.generate_html(sys.argv[2])
-    #p.render_extra(sys.argv[2])
+    p.render_extra(sys.argv[2])
 
