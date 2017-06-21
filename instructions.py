@@ -19,16 +19,18 @@ def render_ldraw_pov(ldrfile, outfile, width=400, height=300, l3p_args=[], pov_a
 
         subprocess.check_call([L3P_BIN, '-o', '-car'+str((1.0*width)/height),
                                '-bu', '-illights.inc', '-ldd'+LDRAW_DIR, '-lgd'+LGEO_DIR,
-                               '-lgeo'] + l3p_args + [ldrfile, povfile.name])
+                               '-lgeo', '-ar'] + l3p_args + [ldrfile, povfile.name])
 
-        subprocess.check_call([POV_BIN, '-L'+LGEO_DIR+'/lg', '-L'+LGEO_DIR+'/ar',
+        subprocess.check_call([POV_BIN, '-L'+LGEO_DIR+'/lg', '-L'+LGEO_DIR+'/ar', '-L'+LGEO_DIR+'/stl',
                                '-W'+str(width), '-H'+str(height), '+A0.3',
                                '+R4'] + pov_args + ['-O'+outfile, povfile.name])
 
 def render_ldraw_leocad(ldrfile, outfile, width=400, height=300, leocad_args=[]):
-
-    subprocess.check_call([LEOCAD_BIN, '-i', outfile,
-                           '-w', str(width), '-h', str(height)] + leocad_args + [ldrfile])
+    try:
+        subprocess.check_call([LEOCAD_BIN, '-i', outfile,
+                               '-w', str(width), '-h', str(height)] + leocad_args + [ldrfile])
+    except subprocess.CalledProcessError:
+        print "Warning: leocad didn't exit clean. Output might be incorrect."
 
 def mkdir_p(path):
     try:
@@ -267,12 +269,19 @@ class Project(object):
 
     def render_steps(self, outdir):
         mkdir_p(outdir+'/steps/')
+        mkdir_p(outdir+'/other/')
         for m in self.models:
             print 'Rendering submodel', m.name, '-', len(m.steps), 'steps.'
             render_ldraw_leocad(self.filename, outdir+'/steps/'+m.name+'-.png', 4000, 3000,
                                 leocad_args=['-m', m.name+m.suffix, '-c', 'step_camera',
                                              '-f', '1', '-t', str(len(m.steps)+1),
                                              '--highlight'])
+        print 'Rendering views'
+        for view in ['front', 'back', 'left', 'right']:
+            render_ldraw_leocad(self.filename, outdir+'/other/'+view+'.png', 4000, 2000,
+                                leocad_args=['--viewpoint', view, '--orthographic'])
+
+            subprocess.check_call(['mogrify', '-rotate', '270', '+repage', outdir+'/other/'+view+'.png'])
 
     def model_steps(self, model):
         self.stepped.append(model)
@@ -291,7 +300,7 @@ class Project(object):
             yield x
 
     def render_extra(self, outdir, width=4000, height=4000):
-        mkdir_p(outdir+'/renders/')
+        mkdir_p(outdir+'/other/')
         for name,camera in self.models[0].cameras.iteritems():
             render_ldraw_pov(self.filename, outdir+'/renders/'+name+'.png', width, height,
                                  l3p_args=['-cc%f,%f,%f' % camera.get_eye_pov(),
@@ -302,9 +311,23 @@ class Project(object):
     def generate_html(self, outdir, ignore=['3811', '4187']):
         with open(outdir+'/index.html', 'w') as html:
             html.write('<html>\n<head>\n')
-            html.write(' <link rel="stylesheet" href="../style.css">\n')
-            html.write(' <script src="../image-dpi.js"></script>\n')
+            html.write(' <link rel="stylesheet" href="style.css">\n')
+            html.write(' <script src="image-dpi.js"></script>\n')
             html.write('</head>\n<body onload="resize_images();">\n')
+            html.write('<div class="frontpage">\n')
+            html.write('</div>\n')
+
+            html.write('<div class="page">\n')
+            html.write('</div>\n')
+
+            html.write('<div class="page isopage">\n')
+            html.write('<div><div class="front"></div></div>\n')
+            html.write('<div><div class="back"></div></div>\n')
+            html.write('<div><div class="left"></div></div>\n')
+            html.write('<div><div class="right"></div></div>\n')
+            html.write('</div>\n')
+
+            html.write('<div class="steps">\n')
             for sn,m,s in self.steps():
                 if len(s.unique_parts(ignore=ignore)) == 0:
                     continue
@@ -315,16 +338,37 @@ class Project(object):
                 html.write('  <ul class="partslist">\n')
                 parts = s.num_parts(ignore=ignore+self.model_names)
                 for p in parts:
-                    html.write('    <li><img src="parts/'+Part(p[0], p[1]).imgname()+'" /> x'+str(parts[p])+'</li>\n')
+                    html.write('    <li><img class="partimg" src="parts/'+Part(p[0], p[1]).imgname()+'" /> x'+str(parts[p])+'</li>\n')
                 html.write('  </ul>\n')
                 html.write('</div>\n')
+
+            html.write('</div>\n')
+
+            # manually delete one of these if the pdf has an odd number of pages
+            html.write('<div class="page">\n')
+            html.write('</div>\n')
+
+            html.write('<div class="page">\n')
+            html.write('</div>\n')
+
+            html.write('<div class="backpage">\n')
+            html.write('</div>\n')
+
             html.write('\n</body>\n</html>\n')
+
+        subprocess.check_call(['cp', 'style.css', 'image-dpi.js', sys.argv[2]])
+
+        subprocess.check_call(['wkhtmltopdf', '--margin-top', '0', '--margin-bottom', '0',
+                               '--margin-left', '0', '--margin-right', '0',
+                               sys.argv[2]+'/index.html', sys.argv[2]+'.pdf'])
+
+        subprocess.check_call(['xdg-open', sys.argv[2]+'.pdf'])
 
 
 if __name__ == '__main__':
     p = Project(sys.argv[1])
-    p.render_parts(sys.argv[2])
-    p.render_steps(sys.argv[2])
+    #p.render_parts(sys.argv[2])
+    #p.render_steps(sys.argv[2])
     p.generate_html(sys.argv[2])
-    p.render_extra(sys.argv[2])
+    #p.render_extra(sys.argv[2])
 

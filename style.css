@@ -10,15 +10,69 @@ body {
 
 @page {
   size: A4 portrait;
-  background-color:#eeeeee;
-  margin:1in;
+  margin:0.5in;
 }
+
+div.frontpage, div.backpage {
+  width:100%;
+  height:100%;
+  background-size:cover;
+  background-position: center; 
+}
+
+div.frontpage {
+  background-image: url("other/front_cover_camera.png");
+  page-break-after: always;
+}
+
+div.backpage {
+  background-image: url("other/back_cover_camera.png");
+  page-break-before: always;
+}
+
+div.page {
+  width:100%;
+  height:100%;
+  page-break-before: always;
+  page-break-after: always;
+}
+
+div.isopage div {
+  width:50%;
+  height:50%;
+  float:left;
+  padding:0.5in 1in;
+  box-sizing: border-box;
+}
+div.isopage div div {
+  width:100%;
+  height:100%;
+  background-size: cover;
+  background-position: center;
+}
+
+div.isopage div div.front {
+  background-image: url("other/front.png");
+}
+
+div.isopage div div.back {
+  background-image: url("other/back.png");
+}
+
+div.isopage div div.left {
+  background-image: url("other/left.png");
+}
+
+div.isopage div div.right {
+  background-image: url("other/right.png");
+}
+
 
 div.step {
   counter-increment: step;
   position:relative;
   width:100%;
-  height:50%;
+  height:49%;
 }
 
 div.step:nth-child(even) {
@@ -28,8 +82,10 @@ div.step:nth-child(even) {
 div.stepnum:after {
   content: counter(step);
   font-size: 0.6in;
+  position:absolute;
   top:0;
   left:0;
+  margin:0.5in;
 }
 
 ul.partslist {
@@ -40,6 +96,7 @@ ul.partslist {
   border: solid #cccccc 0.05in;
   border-radius: 0.1in;
   max-width:75%;
+  margin:0.5in;
 }
 
 ul.partslist li {
@@ -49,7 +106,6 @@ ul.partslist li {
 }
 
 ul.partslist li img {
-  --image-dpi:600;
   vertical-align:middle;
 }
 
@@ -58,6 +114,6 @@ img.stepimg {
   position:absolute;
   top:0;
   left:0;
-  
-  
 }
+
+
