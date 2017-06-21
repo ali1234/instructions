@@ -271,7 +271,8 @@ class Project(object):
             print 'Rendering submodel', m.name, '-', len(m.steps), 'steps.'
             render_ldraw_leocad(self.filename, outdir+'/steps/'+m.name+'-.png', 4000, 3000,
                                 leocad_args=['-m', m.name+m.suffix, '-c', 'step_camera',
-                                             '-f', '1', '-t', str(len(m.steps)+1)])
+                                             '-f', '1', '-t', str(len(m.steps)+1),
+                                             '--highlight'])
 
     def model_steps(self, model):
         self.stepped.append(model)
